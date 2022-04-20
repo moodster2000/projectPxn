@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ERC721A.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "hardhat/console.sol";
 
 /*
 PXN.sol
@@ -26,16 +27,16 @@ contract PXN is Ownable, ERC721A {
     uint256 public DA_DECREMENT = 0.05 ether;
 
     //decrement price every 300 seconds (5 minutes).
-    uint256 public DA_DECREMENT_FREQUENCY = 300;
+    uint256 public DA_DECREMENT_FREQUENCY = 20; //change this to 300
 
     //Starting DA time (seconds). To convert into readable time https://www.unixtimestamp.com/
-    uint256 public DA_STARTING_TIMESTAMP = 1653084000; //please edit and remove comment
+    uint256 public DA_STARTING_TIMESTAMP = 1650405371; //please edit and remove comment
 
     //The final auction price.
     uint256 public DA_FINAL_PRICE;
 
     //The quantity for DA.
-    uint256 public DA_QUANTITY = 4000;
+    uint256 public DA_QUANTITY = 20; //change this to 4000
 
     //How many publicWL have been minted
     uint16 public PUBLIC_WL_MINTED;
@@ -59,13 +60,17 @@ contract PXN is Ownable, ERC721A {
     mapping(address => TokenBatchPriceData[]) public userToTokenBatchPriceData;
 
     mapping(address => bool) public userToHasMintedPublicWL;
-    mapping(address => bool) public userToHasMintedMiceWL;
 
     bool public REVEALED;
     string public BASE_URI;
 
     //WL variables
     address private wlSigner;
+
+    modifier callerIsUser() {
+        require(tx.origin == msg.sender, "The caller is another contract");
+        _;
+    }
 
     constructor() ERC721A("ProjectPXN", "PXN") {}
 
@@ -76,7 +81,6 @@ contract PXN is Ownable, ERC721A {
         );
 
         if (DA_FINAL_PRICE > 0) return DA_FINAL_PRICE;
-
         //Seconds since we started
         uint256 timeSinceStart = block.timestamp - DA_STARTING_TIMESTAMP;
 
@@ -95,7 +99,7 @@ contract PXN is Ownable, ERC721A {
         return DA_STARTING_PRICE - totalDecrement;
     }
 
-    function mintDutchAuction(uint8 quantity) public payable {
+    function mintDutchAuction(uint8 quantity) public payable callerIsUser {
         //Require DA started
         require(
             block.timestamp >= DA_STARTING_TIMESTAMP,
@@ -131,7 +135,7 @@ contract PXN is Ownable, ERC721A {
         _safeMint(msg.sender, quantity);
     }
 
-    function mintWL(bytes calldata signature) public payable {
+    function mintWL(bytes calldata signature) public payable callerIsUser {
         require(DA_FINAL_PRICE > 0, "Dutch action must be over!");
 
         require(
@@ -141,7 +145,7 @@ contract PXN is Ownable, ERC721A {
         require(
             block.timestamp >= WL_STARTING_TIMESTAMP,
             "WL has not started yet!"
-        );
+        ); 
         require(
             block.timestamp <= WL_STARTING_TIMESTAMP + 86400,
             "WL has finished!"
@@ -160,10 +164,13 @@ contract PXN is Ownable, ERC721A {
             "Signer address mismatch."
         );
 
-        uint256 WLprice = (DA_FINAL_PRICE / 100) * 50 ether;
-        if (WLprice > 0.35 ether) {
-            WLprice = 0.35 ether;
+        uint256 WLprice = 0.35 ether;
+        if (((DA_FINAL_PRICE / 100) * 50) < WLprice) {
+            WLprice =((DA_FINAL_PRICE / 100) * 50);
         }
+        console.log(DA_FINAL_PRICE);
+        console.log((DA_FINAL_PRICE / 100) * 50);
+        console.log(WLprice, "WL price");
         require(msg.value >= WLprice, "Must send enough eth for WL Mint");
 
         userToHasMintedPublicWL[msg.sender] = true;
@@ -178,7 +185,7 @@ contract PXN is Ownable, ERC721A {
         require(
             block.timestamp >= WL_STARTING_TIMESTAMP + 86400,
             "WL has finished!"
-        );
+        ); 
         uint256 leftOver = 10000 - totalSupply();
         _safeMint(DEV_FUND, leftOver);
     }
@@ -193,7 +200,8 @@ contract PXN is Ownable, ERC721A {
 
     function refundExtraETH() public {
         require(DA_FINAL_PRICE > 0, "Dutch action must be over!");
-
+        //need to test this one
+        // require(block.timestamp <= DA_STARTING_TIMESTAMP + 604800, "need to happen 1 week after Dutch Auction"); //uncomment
         uint256 totalRefund;
 
         for (
@@ -220,7 +228,7 @@ contract PXN is Ownable, ERC721A {
 
     function withdrawFunds() public onlyOwner {
         //Require this is 1 weeks after DA Start.
-        require(block.timestamp >= DA_STARTING_TIMESTAMP + 604800);
+        require(block.timestamp >= DA_STARTING_TIMESTAMP + 604800, "need to happen 1 week after Dutch Auction"); 
 
         uint256 finalFunds = address(this).balance;
         payable(FOUNDER_ADD).transfer((finalFunds * 5000) / 10000);
@@ -256,21 +264,24 @@ contract PXN is Ownable, ERC721A {
 
 //things to do for contract
 // Token URI non reveal
-// created: ✅ tested:  ☠️
+// created: ✅ tested:  ✅
 // Token URI reveal
-// created: ✅ tested:  ☠️
+// created: ✅ tested:  ✅
 
 // Payout feature
-// created: ✅ tested: ☠️
+// created: ✅ tested: ✅
 
 // Public DA Function
-// created: ✅ tested:
+// created: ✅ tested: ✅
+
+
+
 
 // WL Mint
-// created:✅  tested:
+// created:✅  tested: ✅
 
 // Signer Method
-// created:✅  tested:
+// created:✅  tested: ✅
 
 // Send Remaining NFT to Vault
-// created:✅ tested:
+// created:✅  tested: ✅
