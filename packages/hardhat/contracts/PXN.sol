@@ -27,7 +27,7 @@ contract PXN is Ownable, ERC721A {
     uint256 public DA_DECREMENT = 0.05 ether;
 
     //decrement price every 300 seconds (5 minutes).
-    uint256 public DA_DECREMENT_FREQUENCY = 20; //change this to 300
+    uint256 public DA_DECREMENT_FREQUENCY = 300; 
 
     //Starting DA time (seconds). To convert into readable time https://www.unixtimestamp.com/
     uint256 public DA_STARTING_TIMESTAMP = 1650405371; //please edit and remove comment
@@ -36,7 +36,8 @@ contract PXN is Ownable, ERC721A {
     uint256 public DA_FINAL_PRICE;
 
     //The quantity for DA.
-    uint256 public DA_QUANTITY = 20; //change this to 4000
+    uint256 public DA_QUANTITY = 4000;
+
 
     //How many publicWL have been minted
     uint16 public PUBLIC_WL_MINTED;
@@ -200,8 +201,7 @@ contract PXN is Ownable, ERC721A {
 
     function refundExtraETH() public {
         require(DA_FINAL_PRICE > 0, "Dutch action must be over!");
-        //need to test this one
-        // require(block.timestamp <= DA_STARTING_TIMESTAMP + 604800, "need to happen 1 week after Dutch Auction"); //uncomment
+        require(block.timestamp <= DA_STARTING_TIMESTAMP + 604800, "need to happen 1 week after Dutch Auction"); 
         uint256 totalRefund;
 
         for (
@@ -220,7 +220,7 @@ contract PXN is Ownable, ERC721A {
             //Remove this tokenBatch
             userToTokenBatchPriceData[msg.sender].pop();
 
-            //Send them their extra monies.
+            //Send them their extra money.
             totalRefund += refund;
         }
         payable(msg.sender).transfer(totalRefund);
@@ -261,27 +261,3 @@ contract PXN is Ownable, ERC721A {
         }
     }
 }
-
-//things to do for contract
-// Token URI non reveal
-// created: ✅ tested:  ✅
-// Token URI reveal
-// created: ✅ tested:  ✅
-
-// Payout feature
-// created: ✅ tested: ✅
-
-// Public DA Function
-// created: ✅ tested: ✅
-
-
-
-
-// WL Mint
-// created:✅  tested: ✅
-
-// Signer Method
-// created:✅  tested: ✅
-
-// Send Remaining NFT to Vault
-// created:✅  tested: ✅
