@@ -22,7 +22,7 @@ contract Ghost is Ownable, ERC721A {
     string public baseExtension = ".json";
 
     //DA active variable
-    bool public DA_ACTIVE = false;
+    bool public DA_ACTIVE = false; //change this
 
     //Starting at 0.5 ether
     uint256 public DA_STARTING_PRICE = 2 ether;
@@ -37,7 +37,7 @@ contract Ghost is Ownable, ERC721A {
     uint256 public DA_DECREMENT_FREQUENCY = 300;
 
     //Starting DA time (seconds). To convert into readable time https://www.unixtimestamp.com/
-    uint256 public DA_STARTING_TIMESTAMP = 1650405371; //please edit and remove comment
+    uint256 public DA_STARTING_TIMESTAMP = 1651226981; //please edit and remove comment
 
     //The final auction price.
     uint256 public DA_FINAL_PRICE;
@@ -237,9 +237,9 @@ contract Ghost is Ownable, ERC721A {
     function userToTokenBatchLength(address user)
         public
         view
-        returns (uint256)
+        returns (TokenBatchPriceData [] memory)
     {
-        return userToTokenBatchPriceData[user].length;
+        return userToTokenBatchPriceData[user];
     }
 
     function withdrawFunds() public onlyOwner {
