@@ -18,7 +18,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deployer } = await getNamedAccounts();
   const chainId = await getChainId();
 
-  await deploy("PXN", {
+  await deploy("Ghost", {
     // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
     from: deployer,
     // args: [ "Hello", ethers.utils.parseEther("1.5") ],
@@ -27,7 +27,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   });
 
   // Getting a previously deployed contract
-  const YourContract = await ethers.getContract("PXN", deployer);
+  const YourContract = await ethers.getContract("Ghost", deployer);
   /*  await YourContract.setPurpose("Hello");
   
     To take ownership of yourContract using the ownable library uncomment next line and add the 
@@ -42,15 +42,15 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   // console.log(await YourContract.REVEALED(), "hello");
   // await YourContract.setBaseURI("https://storage.googleapis.com/prereveal_riceday/RiceDay.json");
   // console.log(await YourContract.tokenURI(1), "yum");
-  // await YourContract.setRevealData(true);
-  // console.log(await YourContract.REVEALED(), "hello");
-  // await YourContract.setBaseURI("https://storage.googleapis.com/revealdata/actual/");
-  // console.log(await YourContract.tokenURI(1), "yum");
+  await YourContract.setRevealData(true);
+  console.log(await YourContract.REVEALED(), "hello");
+  await YourContract.setBaseURI("https://storage.googleapis.com/revealdata/actual/");
+  console.log(await YourContract.tokenURI(1), "yum");
 
-  const accounts = await hre.ethers.getSigners();
+  // const accounts = await hre.ethers.getSigners();
   // console.log(ethers.utils.formatEther(await accounts[0].getBalance(), "balance of current user"))
-  const test = await YourContract.currentPrice();
-  console.log(ethers.utils.formatEther(test), "Current price");
+  // const test = await YourContract.currentPrice();
+  // console.log(ethers.utils.formatEther(test), "Current price");
 
   //test public auction
 
@@ -70,9 +70,9 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
 
     //refund test mint 19 -> mint 1 after some time. -> refund 
-    console.log(ethers.utils.formatEther(await provider.getBalance(accounts[0].address)), "before"); 
-    await YourContract.refundExtraETH();
-    console.log(ethers.utils.formatEther(await provider.getBalance(accounts[0].address)), "after"); 
+    // console.log(ethers.utils.formatEther(await provider.getBalance(accounts[0].address)), "before"); 
+    // await YourContract.refundExtraETH();
+    // console.log(ethers.utils.formatEther(await provider.getBalance(accounts[0].address)), "after"); 
   //WL tests
     //test signer method
     // await YourContract.setSigners("0x5AF4e1dBDc75424b5a5E2F3B91e7775E222f8337");

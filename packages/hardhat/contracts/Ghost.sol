@@ -11,12 +11,19 @@ import "hardhat/console.sol";
 PXN.sol
 
 Written by: Moodi
-Dutch Auction style inspired by: 0xinuarashi and mousedev.eth
+Dutch Auction style inspired by: Churi Labs
 
 */
 
-contract PXN is Ownable, ERC721A {
+contract Ghost is Ownable, ERC721A {
     using ECDSA for bytes32;
+
+    //Base Extension
+    string public baseExtension = ".json";
+
+    //DA active variable
+    bool public DA_ACTIVE = false;
+
     //Starting at 0.5 ether
     uint256 public DA_STARTING_PRICE = 2 ether;
 
@@ -27,7 +34,7 @@ contract PXN is Ownable, ERC721A {
     uint256 public DA_DECREMENT = 0.05 ether;
 
     //decrement price every 300 seconds (5 minutes).
-    uint256 public DA_DECREMENT_FREQUENCY = 300; 
+    uint256 public DA_DECREMENT_FREQUENCY = 300;
 
     //Starting DA time (seconds). To convert into readable time https://www.unixtimestamp.com/
     uint256 public DA_STARTING_TIMESTAMP = 1650405371; //please edit and remove comment
@@ -35,18 +42,20 @@ contract PXN is Ownable, ERC721A {
     //The final auction price.
     uint256 public DA_FINAL_PRICE;
 
+    //WL Price
+    uint256 public WLprice = 0.35 ether;
+
     //The quantity for DA.
     uint256 public DA_QUANTITY = 4000;
 
+    //The quantity for WL.
+    uint256 public WL_QUANTITY = 6000;
 
     //How many publicWL have been minted
     uint16 public PUBLIC_WL_MINTED;
 
-    bool public INITIAL_FUNDS_WITHDRAWN;
-    bool public REMAINING_FUNDS_WITHDRAWN;
-
-    address public FOUNDER_ADD = 0x0E861ddDA17f7C20996dC0868cAcc200bc1985c0; //please edit and remove comment
-    address public DEV_FUND = 0xBC77EDd603bEf4004c47A831fDDa437cD906442E; //please edit and remove comment
+    address public FOUNDER_ADD = 0x0000000000000000000000000000000000000000; //please edit and remove comment
+    address public DEV_FUND = 0x1111111111111111111111111111111111111111; //please edit and remove comment
 
     //+86400 so it takes place 24 hours after Dutch Auction
     uint256 public WL_STARTING_TIMESTAMP = DA_STARTING_TIMESTAMP + 86400;
@@ -62,10 +71,13 @@ contract PXN is Ownable, ERC721A {
 
     mapping(address => bool) public userToHasMintedPublicWL;
 
-    bool public REVEALED;
+    //team WL list
+    mapping(address => uint256) private _teamList;
+
+    bool public REVEALED = false;
     string public BASE_URI;
 
-    //WL variables
+    //WL signer for verification
     address private wlSigner;
 
     modifier callerIsUser() {
@@ -73,7 +85,7 @@ contract PXN is Ownable, ERC721A {
         _;
     }
 
-    constructor() ERC721A("ProjectPXN", "PXN") {}
+    constructor() ERC721A("ghost", "GHOST") {}
 
     function currentPrice() public view returns (uint256) {
         require(
@@ -101,14 +113,19 @@ contract PXN is Ownable, ERC721A {
     }
 
     function mintDutchAuction(uint8 quantity) public payable callerIsUser {
+        require(
+            DA_ACTIVE == true,
+            "DA isnt active"
+        );
+        
         //Require DA started
         require(
             block.timestamp >= DA_STARTING_TIMESTAMP,
             "DA has not started!"
         );
         require(block.timestamp <= WL_STARTING_TIMESTAMP, "DA is finished");
-        //Require max 5
-        require(quantity > 0 && quantity < 3, "Can only mint max 2 NFTs!");
+        //Require max 3
+        require(quantity > 0 && quantity < 4, "Can only mint max 2 NFTs!");
 
         uint256 _currentPrice = currentPrice();
 
@@ -124,9 +141,13 @@ contract PXN is Ownable, ERC721A {
             "Max supply for DA reached!"
         );
 
-        //This is the final price
-        if (totalSupply() + quantity == DA_QUANTITY)
+        //This calculates the final price
+        if (totalSupply() + quantity == DA_QUANTITY) {
             DA_FINAL_PRICE = _currentPrice;
+            if (((DA_FINAL_PRICE / 100) * 50) < WLprice) {
+                WLprice = ((DA_FINAL_PRICE / 100) * 50);
+            }
+        }
 
         userToTokenBatchPriceData[msg.sender].push(
             TokenBatchPriceData(uint128(msg.value), quantity)
@@ -146,13 +167,16 @@ contract PXN is Ownable, ERC721A {
         require(
             block.timestamp >= WL_STARTING_TIMESTAMP,
             "WL has not started yet!"
-        ); 
+        );
         require(
             block.timestamp <= WL_STARTING_TIMESTAMP + 86400,
             "WL has finished!"
         );
         //Require max supply just in case.
-        require(totalSupply() + 1 <= 6000, "Max supply of 6000!");
+        require(
+            PUBLIC_WL_MINTED + 1 <= WL_QUANTITY,
+            "Max supply of 6000!"
+        );
 
         require(
             wlSigner ==
@@ -165,13 +189,6 @@ contract PXN is Ownable, ERC721A {
             "Signer address mismatch."
         );
 
-        uint256 WLprice = 0.35 ether;
-        if (((DA_FINAL_PRICE / 100) * 50) < WLprice) {
-            WLprice =((DA_FINAL_PRICE / 100) * 50);
-        }
-        console.log(DA_FINAL_PRICE);
-        console.log((DA_FINAL_PRICE / 100) * 50);
-        console.log(WLprice, "WL price");
         require(msg.value >= WLprice, "Must send enough eth for WL Mint");
 
         userToHasMintedPublicWL[msg.sender] = true;
@@ -186,9 +203,35 @@ contract PXN is Ownable, ERC721A {
         require(
             block.timestamp >= WL_STARTING_TIMESTAMP + 86400,
             "WL has finished!"
-        ); 
+        );
         uint256 leftOver = 10000 - totalSupply();
         _safeMint(DEV_FUND, leftOver);
+    }
+
+    //team mint
+    function teamMint(uint8 quantity) public payable {
+        require(
+            block.timestamp >= WL_STARTING_TIMESTAMP + 86400,
+            "WL has finished!"
+        );
+        require(_teamList[msg.sender] >= quantity, "already claimed");
+        require(
+            msg.value >= quantity * WLprice,
+            "Must send enough eth for WL Mint"
+        );
+
+        _safeMint(msg.sender, quantity);
+        _teamList[msg.sender] = _teamList[msg.sender] - quantity;
+    }
+
+    //set team mint
+    function setTeamMint(address[] calldata _addresses, uint8 amount)
+        public
+        onlyOwner
+    {
+        for (uint256 i = 0; i < _addresses.length; i++) {
+            _teamList[_addresses[i]] = amount;
+        }
     }
 
     function userToTokenBatchLength(address user)
@@ -199,48 +242,31 @@ contract PXN is Ownable, ERC721A {
         return userToTokenBatchPriceData[user].length;
     }
 
-    function refundExtraETH() public {
-        require(DA_FINAL_PRICE > 0, "Dutch action must be over!");
-        require(block.timestamp <= DA_STARTING_TIMESTAMP + 604800, "need to happen 1 week after Dutch Auction"); 
-        uint256 totalRefund;
-
-        for (
-            uint256 i = userToTokenBatchPriceData[msg.sender].length;
-            i > 0;
-            i--
-        ) {
-            //This is what they should have paid if they bought at lowest price tier.
-            uint256 expectedPrice = userToTokenBatchPriceData[msg.sender][i - 1]
-                .quantityMinted * DA_FINAL_PRICE;
-
-            //What they paid - what they should have paid = refund.
-            uint256 refund = userToTokenBatchPriceData[msg.sender][i - 1]
-                .pricePaid - expectedPrice;
-
-            //Remove this tokenBatch
-            userToTokenBatchPriceData[msg.sender].pop();
-
-            //Send them their extra money.
-            totalRefund += refund;
-        }
-        payable(msg.sender).transfer(totalRefund);
-    }
-
     function withdrawFunds() public onlyOwner {
-        //Require this is 1 weeks after DA Start.
-        require(block.timestamp >= DA_STARTING_TIMESTAMP + 604800, "need to happen 1 week after Dutch Auction"); 
-
         uint256 finalFunds = address(this).balance;
         payable(FOUNDER_ADD).transfer((finalFunds * 5000) / 10000);
         payable(DEV_FUND).transfer((finalFunds * 5000) / 10000);
     }
 
+    //VARIABLES THAT NEED TO BE SET BEFORE MINT(pls remove comment when uploading to mainet)
     function setSigners(address signer) external onlyOwner {
         wlSigner = signer;
     }
 
+    function setDutchActionActive(bool daActive) public onlyOwner {
+        DA_ACTIVE = daActive;
+    }
+
     function setRevealData(bool _revealed) public onlyOwner {
         REVEALED = _revealed;
+    }
+
+    function setStartTime(uint256 startTime) public onlyOwner {
+        DA_STARTING_TIMESTAMP = startTime;
+    }
+
+    function setWLSupply(uint16 quantity) public onlyOwner {
+        WL_QUANTITY = quantity;
     }
 
     function setBaseURI(string memory _baseURI) public onlyOwner {
@@ -255,7 +281,7 @@ contract PXN is Ownable, ERC721A {
     {
         if (REVEALED) {
             return
-                string(abi.encodePacked(BASE_URI, Strings.toString(_tokenId)));
+                string(abi.encodePacked(BASE_URI, Strings.toString(_tokenId), baseExtension));
         } else {
             return BASE_URI;
         }
