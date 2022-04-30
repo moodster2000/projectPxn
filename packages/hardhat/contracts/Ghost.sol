@@ -211,7 +211,7 @@ contract Ghost is Ownable, ERC721A {
     //team mint
     function teamMint(uint8 quantity) public payable {
         require(
-            block.timestamp >= WL_STARTING_TIMESTAMP + 86400,
+            block.timestamp >= WL_STARTING_TIMESTAMP,
             "WL has finished!"
         );
         require(_teamList[msg.sender] >= quantity, "already claimed");
@@ -219,9 +219,8 @@ contract Ghost is Ownable, ERC721A {
             msg.value >= quantity * WLprice,
             "Must send enough eth for WL Mint"
         );
-
-        _safeMint(msg.sender, quantity);
         _teamList[msg.sender] = _teamList[msg.sender] - quantity;
+        _safeMint(msg.sender, quantity);
     }
 
     //set team mint
@@ -232,6 +231,14 @@ contract Ghost is Ownable, ERC721A {
         for (uint256 i = 0; i < _addresses.length; i++) {
             _teamList[_addresses[i]] = amount;
         }
+    }
+
+    function readTeamMint(address user)
+        public
+        view
+        returns (uint256)
+    {
+        return _teamList[user];
     }
 
     function userToTokenBatchLength(address user)
