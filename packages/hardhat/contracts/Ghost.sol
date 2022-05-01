@@ -85,7 +85,7 @@ contract Ghost is Ownable, ERC721A {
         _;
     }
 
-    constructor() ERC721A("ghost", "GHOST") {}
+    constructor() ERC721A("projectPXN", "GHOST") {}
 
     function currentPrice() public view returns (uint256) {
         require(
@@ -124,8 +124,11 @@ contract Ghost is Ownable, ERC721A {
             "DA has not started!"
         );
         require(block.timestamp <= WL_STARTING_TIMESTAMP, "DA is finished");
-        //Require max 3
-        require(quantity > 0 && quantity < 4, "Can only mint max 2 NFTs!");
+        //Require max 3 per tx
+        require(quantity > 0 && quantity < 4, "Can only mint max 3 NFTs!");
+
+        //Require max 3 per wallet
+        require(balanceOf(msg.sender) < 4, "Can only mint max 3 NFTs!");
 
         uint256 _currentPrice = currentPrice();
 
@@ -241,7 +244,7 @@ contract Ghost is Ownable, ERC721A {
         return _teamList[user];
     }
 
-    function userToTokenBatchLength(address user)
+    function userToTokenBatch(address user)
         public
         view
         returns (TokenBatchPriceData [] memory)

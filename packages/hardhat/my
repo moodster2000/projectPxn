@@ -1,0 +1,2 @@
+sudo docker run -v $(pwd):/tmp  -w /tmp mythril/myth:latest --solc-args="--allow-paths /tmp/node_modules/zeppelin-solidity/  
+zeppelin-solidity=/tmp/node_modules/zeppelin-solidity" -v4 --verbose-report -x contracts/Ghost.sol
