@@ -28,6 +28,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
   // Getting a previously deployed contract
   const YourContract = await ethers.getContract("Ghost", deployer);
+
   /*  await YourContract.setPurpose("Hello");
   
     To take ownership of yourContract using the ownable library uncomment next line and add the 
@@ -52,7 +53,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   // );
   // console.log(await YourContract.tokenURI(1), "yum");
 
-  const accounts = await hre.ethers.getSigners();
+  // const accounts = await hre.ethers.getSigners();
   // await YourContract.setDutchActionActive(true);
   // const test = ethers.utils.formatEther(await YourContract.currentPrice())*3;
   // console.log(test, "Current price");
@@ -136,16 +137,16 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
   // You can also Verify your contracts with Etherscan here...
   // You don't want to verify on localhost
-  // try {
-  //   if (chainId !== localChainId) {
-  //     await run("verify:verify", {
-  //       address: YourContract.address,
-  //       contract: "contracts/YourContract.sol:YourContract",
-  //       constructorArguments: [],
-  //     });
-  //   }
-  // } catch (error) {
-  //   console.error(error);
-  // }
+  try {
+    if (chainId !== localChainId) {
+      await run("verify:verify", {
+        address: YourContract.address,
+        contract: "contracts/Ghost.sol:Ghost",
+        constructorArguments: [],
+      });
+    }
+  } catch (error) {
+    console.error(error);
+  }
 };
 module.exports.tags = ["YourContract"];

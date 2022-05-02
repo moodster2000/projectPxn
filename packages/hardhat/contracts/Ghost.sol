@@ -35,7 +35,7 @@ contract Ghost is Ownable, ERC721A {
     uint256 public DA_DECREMENT = 0.05 ether;
 
     //decrement price every 300 seconds (5 minutes).
-    uint256 public DA_DECREMENT_FREQUENCY = 300;
+    uint256 public DA_DECREMENT_FREQUENCY = 300; 
 
     //Starting DA time (seconds). To convert into readable time https://www.unixtimestamp.com/
     uint256 public DA_STARTING_TIMESTAMP = 1651470060; //please edit and remove comment
@@ -47,7 +47,7 @@ contract Ghost is Ownable, ERC721A {
     uint256 public WLprice = 0.35 ether;
 
     //The quantity for DA.
-    uint256 public DA_QUANTITY = 4000;
+    uint256 public DA_QUANTITY = 4000; 
 
     //The quantity for WL.
     uint256 public WL_QUANTITY = 6000;
@@ -59,7 +59,7 @@ contract Ghost is Ownable, ERC721A {
     address public DEV_FUND = 0x1111111111111111111111111111111111111111; //please edit and remove comment
 
     //+86400 so it takes place 24 hours after Dutch Auction
-    uint256 public WL_STARTING_TIMESTAMP = DA_STARTING_TIMESTAMP + 86400;
+    uint256 public WL_STARTING_TIMESTAMP = DA_STARTING_TIMESTAMP + 86400; 
 
     //Struct for storing batch price data.
     struct TokenBatchPriceData {
@@ -73,7 +73,7 @@ contract Ghost is Ownable, ERC721A {
     mapping(address => bool) public userToHasMintedPublicWL;
 
     //team WL list
-    mapping(address => uint256) private _teamList;
+    mapping(address => uint256) public _teamList;
 
     bool public REVEALED = false;
     string public BASE_URI;
@@ -237,22 +237,6 @@ contract Ghost is Ownable, ERC721A {
         }
     }
 
-    function readTeamMint(address user)
-        public
-        view
-        returns (uint256)
-    {
-        return _teamList[user];
-    }
-
-    function userToTokenBatch(address user)
-        public
-        view
-        returns (TokenBatchPriceData [] memory)
-    {
-        return userToTokenBatchPriceData[user];
-    }
-
     function withdrawFunds() public onlyOwner {
         uint256 finalFunds = address(this).balance;
         payable(FOUNDER_ADD).transfer((finalFunds * 5000) / 10000);
@@ -274,6 +258,7 @@ contract Ghost is Ownable, ERC721A {
 
     function setStartTime(uint256 startTime) public onlyOwner {
         DA_STARTING_TIMESTAMP = startTime;
+        WL_STARTING_TIMESTAMP = startTime + 86400; 
     }
 
     function setWLSupply(uint16 quantity) public onlyOwner {
