@@ -32,40 +32,52 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   
     To take ownership of yourContract using the ownable library uncomment next line and add the 
     address you want to be the owner. 
-    // await yourContract.transferOwnership(YOUR_ADDRESS_HERE);
+    await yourContract.transferOwnership(YOUR_ADDRESS_HERE);
 
     //const yourContract = await ethers.getContractAt('YourContract', "0xaAC799eC2d00C013f1F11c37E654e59B0429DF6A") //<-- if you want to instantiate a version of a contract at a specific address!
   */
 
   //test For Reveal ✅
+  //test unrevealed
   // await YourContract.setRevealData(false);
   // console.log(await YourContract.REVEALED(), "hello");
   // await YourContract.setBaseURI("https://storage.googleapis.com/prereveal_riceday/RiceDay.json");
   // console.log(await YourContract.tokenURI(1), "yum");
-  await YourContract.setRevealData(true);
-  console.log(await YourContract.REVEALED(), "hello");
-  await YourContract.setBaseURI(
-    "https://storage.googleapis.com/revealdata/actual/"
-  );
-  console.log(await YourContract.tokenURI(1), "yum");
 
-  // const accounts = await hre.ethers.getSigners();
-  // console.log(ethers.utils.formatEther(await accounts[0].getBalance(), "balance of current user"))
-  // const test = await YourContract.currentPrice();
-  // console.log(ethers.utils.formatEther(test), "Current price");
+  // //test revealed
+  // await YourContract.setRevealData(true);
+  // console.log(await YourContract.REVEALED(), "hello");
+  // await YourContract.setBaseURI(
+  //   "https://storage.googleapis.com/revealdata/actual/"
+  // );
+  // console.log(await YourContract.tokenURI(1), "yum");
 
-  //test public auction
+  const accounts = await hre.ethers.getSigners();
+  // await YourContract.setDutchActionActive(true);
+  // const test = ethers.utils.formatEther(await YourContract.currentPrice())*3;
+  // console.log(test, "Current price");
 
+  //test public auction (changed dutch auction quantity to 20 to test)
   //mint dutch with high and low prices
-  // await YourContract.mintDutchAuction(1, {
-  //   value: test,
+  // for (var i = 0; i < 20; i++) {
+  //   await YourContract.mintDutchAuction(1, {
+  //     value: ethers.utils.parseEther(test),
+  //   });
+  // }
+  // await YourContract.mintDutchAuction(3, {
+  //   value: ethers.utils.parseEther(test.toString()),
   // });
+  // console.log(await YourContract.balanceOf(accounts[0].address), "before balance");
+  // const wlprice = ethers.utils.formatEther(await YourContract.WLprice());
+
+  // await YourContract.setTeamMint([accounts[0].address, accounts[1].address], 2);
+  // await YourContract.teamMint(2, {
+  //   value: ethers.utils.parseEther((0.05*2).toString()),
+  // });
+  // console.log("your balance", (await YourContract.balanceOf(accounts[0].address)));
+  // //check to see if you can retrieve info about mint
   // console.log(await YourContract.userToTokenBatchLength(accounts[0].address));
   // for(var i = 0; i < 1; i++) {
-  //   // var newAddress = ethers.Wallet.createRandom();
-  //   console.log(ethers.utils.formatEther(await provider.getBalance(accounts[i].address)), "amount");
-  //   YourContract.connect(accounts[i].address);
-  //   console.log(accounts[i].address)
   //   await YourContract.mintDutchAuction(1, {
   //     value: test,
   //   });
@@ -73,23 +85,23 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   // }
   // console.log(await YourContract.totalSupply(), "total supply");
 
-  //refund test mint 19 -> mint 1 after some time. -> refund
-  // console.log(ethers.utils.formatEther(await provider.getBalance(accounts[0].address)), "before");
-  // await YourContract.refundExtraETH();
-  // console.log(ethers.utils.formatEther(await provider.getBalance(accounts[0].address)), "after");
-  //WL tests
-  //test signer method
+  // //WL tests
+  // //test signer method
   // await YourContract.setSigners("0x5AF4e1dBDc75424b5a5E2F3B91e7775E222f8337");
-  // presale mint
+  // // presale mint
   // await YourContract.mintWL("0xedfb4fd95ca947c235160d9e039367ce1e113271717b48c0c2dc32d23fcff2e3391b6e5d0347cd1390eab3f160623492d9b4a71bc2670984570f0a7bbba69ebd1b",{
   //   value: test,
   // });
   // console.log(await YourContract.totalSupply().toString(), "total supply");
 
-  //airdrop rest of supply to dev fund
+  //  // Team Mint
+  //  await YourContract.setTeamMint(["0xC8903A1BeB1772bFad93F942951eB17455830985"],"3");
+  //  await YourContract.teamMint("3");
+
+  // //airdrop rest of supply to dev fund
   // await YourContract.devMint();
 
-  // payout feature test
+  // // payout feature test
   // let founderAdd = ethers.utils.getAddress("0x0E861ddDA17f7C20996dC0868cAcc200bc1985c0");
   // let devAdd = ethers.utils.getAddress("0xBC77EDd603bEf4004c47A831fDDa437cD906442E");
   // console.log(ethers.utils.formatEther(await provider.getBalance(founderAdd)));

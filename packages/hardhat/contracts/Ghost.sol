@@ -8,10 +8,11 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "hardhat/console.sol";
 
 /*
-PXN.sol
+Ghost.sol
 
-Written by: Moodi
-Dutch Auction style inspired by: Churi Labs
+Modified for PXN by: moodi
+Originally Written by: mousedev.eth
+Dutch Auction style inspired by: 0xinuarashi
 
 */
 
@@ -22,7 +23,7 @@ contract Ghost is Ownable, ERC721A {
     string public baseExtension = ".json";
 
     //DA active variable
-    bool public DA_ACTIVE = false; //change this
+    bool public DA_ACTIVE = false; 
 
     //Starting at 0.5 ether
     uint256 public DA_STARTING_PRICE = 2 ether;
@@ -37,7 +38,7 @@ contract Ghost is Ownable, ERC721A {
     uint256 public DA_DECREMENT_FREQUENCY = 300;
 
     //Starting DA time (seconds). To convert into readable time https://www.unixtimestamp.com/
-    uint256 public DA_STARTING_TIMESTAMP = 1651226981; //please edit and remove comment
+    uint256 public DA_STARTING_TIMESTAMP = 1651470060; //please edit and remove comment
 
     //The final auction price.
     uint256 public DA_FINAL_PRICE;
@@ -128,7 +129,7 @@ contract Ghost is Ownable, ERC721A {
         require(quantity > 0 && quantity < 4, "Can only mint max 3 NFTs!");
 
         //Require max 3 per wallet
-        require(balanceOf(msg.sender) < 4, "Can only mint max 3 NFTs!");
+        require(balanceOf(msg.sender) + quantity < 3, "Can only mint max 3 NFTs!");
 
         uint256 _currentPrice = currentPrice();
 
@@ -205,7 +206,7 @@ contract Ghost is Ownable, ERC721A {
     function devMint() external onlyOwner {
         require(
             block.timestamp >= WL_STARTING_TIMESTAMP + 86400,
-            "WL has finished!"
+            "WL hasnt finished!"
         );
         uint256 leftOver = 10000 - totalSupply();
         _safeMint(DEV_FUND, leftOver);
