@@ -129,7 +129,7 @@ contract Ghost is Ownable, ERC721A {
         require(quantity > 0 && quantity < 4, "Can only mint max 3 NFTs!");
 
         //Require max 3 per wallet
-        require(balanceOf(msg.sender) + quantity < 3, "Can only mint max 3 NFTs!");
+        require(balanceOf(msg.sender) + quantity < 4, "Can only mint max 3 NFTs!");
 
         uint256 _currentPrice = currentPrice();
 
