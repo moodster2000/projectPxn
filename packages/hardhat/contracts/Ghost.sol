@@ -28,7 +28,7 @@ contract Ghost is Ownable, ERC721A {
     bool public DA_ACTIVE = false; 
 
     //Starting at 2 ether
-    uint256 public DA_STARTING_PRICE = 2 ether;
+    uint256 public DA_STARTING_PRICE = 2 ether; 
 
     //Ending at 0.1 ether
     uint256 public DA_ENDING_PRICE = 0.1 ether;
@@ -40,7 +40,7 @@ contract Ghost is Ownable, ERC721A {
     uint256 public DA_DECREMENT_FREQUENCY = 300; 
 
     //Starting DA time (seconds). To convert into readable time https://www.unixtimestamp.com/
-    uint256 public DA_STARTING_TIMESTAMP = 1651470060; //please edit and remove comment
+    uint256 public DA_STARTING_TIMESTAMP = 1651587687; //please edit and remove comment
 
     //The final auction price.
     uint256 public DA_FINAL_PRICE;
@@ -57,8 +57,8 @@ contract Ghost is Ownable, ERC721A {
     //How many publicWL have been minted
     uint16 public PUBLIC_WL_MINTED;
 
-    address public FOUNDER_ADD = 0x0000000000000000000000000000000000000000; //please edit and remove comment
-    address public DEV_FUND = 0x1111111111111111111111111111111111111111; //please edit and remove comment
+    address public FOUNDER_ADD = 0xDfcF9a8Ec246Dd94C110b4Ccf7545eC6f913dA37; //please edit and remove comment
+    address public DEV_FUND = 0xC8903A1BeB1772bFad93F942951eB17455830985; //please edit and remove comment
 
     //+86400 so it takes place 24 hours after Dutch Auction
     uint256 public WL_STARTING_TIMESTAMP = DA_STARTING_TIMESTAMP + 86400; 
@@ -83,12 +83,14 @@ contract Ghost is Ownable, ERC721A {
     //WL signer for verification
     address private wlSigner;
 
+    address private daSigner;
+
     modifier callerIsUser() {
         require(tx.origin == msg.sender, "The caller is another contract");
         _;
     }
 
-    constructor() ERC721A("projectPXN", "GHOST") {}
+    constructor() ERC721A("projectPXN", "GHOST") {} 
 
     function currentPrice() public view returns (uint256) {
         require(
@@ -115,7 +117,7 @@ contract Ghost is Ownable, ERC721A {
         return DA_STARTING_PRICE - totalDecrement;
     }
 
-    function mintDutchAuction(uint8 quantity) public payable callerIsUser {
+    function mintDutchAuction(uint8 quantity, bytes calldata signature) public payable callerIsUser {
         require(
             DA_ACTIVE == true,
             "DA isnt active"
@@ -127,11 +129,22 @@ contract Ghost is Ownable, ERC721A {
             "DA has not started!"
         );
         require(block.timestamp <= WL_STARTING_TIMESTAMP, "DA is finished");
-        //Require max 3 per tx
-        require(quantity > 0 && quantity < 4, "Can only mint max 3 NFTs!");
+        //Require max 2 per tx
+        require(quantity > 0 && quantity < 3, "Can only mint max 2 NFTs!");
 
-        //Require max 3 per wallet
-        require(balanceOf(msg.sender) + quantity < 4, "Can only mint max 3 NFTs!");
+        require(
+            daSigner ==
+                keccak256(
+                    abi.encodePacked(
+                        "\x19Ethereum Signed Message:\n32",
+                        bytes32(uint256(uint160(msg.sender)))
+                    )
+                ).recover(signature),
+            "Signer address mismatch."
+        );
+
+        //Require max 2 per wallet
+        require(balanceOf(msg.sender) + quantity < 3, "Can only mint max 2 NFTs!");
 
         uint256 _currentPrice = currentPrice();
 
@@ -240,6 +253,22 @@ contract Ghost is Ownable, ERC721A {
         }
     }
 
+    function readTeamMint(address user)
+        public
+        view
+        returns (uint256)
+    {
+        return _teamList[user];
+    }
+
+    function userToTokenBatch(address user)
+        public
+        view
+        returns (TokenBatchPriceData [] memory)
+    {
+        return userToTokenBatchPriceData[user];
+    }
+
     function withdrawFunds() public onlyOwner {
         uint256 finalFunds = address(this).balance;
         payable(FOUNDER_ADD).transfer((finalFunds * 5000) / 10000);
@@ -247,8 +276,12 @@ contract Ghost is Ownable, ERC721A {
     }
 
     //VARIABLES THAT NEED TO BE SET BEFORE MINT(pls remove comment when uploading to mainet)
-    function setSigners(address signer) external onlyOwner {
+    function setWLSigners(address signer) external onlyOwner {
         wlSigner = signer;
+    }
+
+    function setDASigners(address signer) external onlyOwner {
+        daSigner = signer;
     }
 
     function setDutchActionActive(bool daActive) public onlyOwner {
@@ -261,7 +294,7 @@ contract Ghost is Ownable, ERC721A {
 
     function setStartTime(uint256 startTime) public onlyOwner {
         DA_STARTING_TIMESTAMP = startTime;
-        WL_STARTING_TIMESTAMP = startTime + 86400; 
+        WL_STARTING_TIMESTAMP = startTime + 86400;
     }
 
     function setWLSupply(uint16 quantity) public onlyOwner {
