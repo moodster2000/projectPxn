@@ -133,7 +133,7 @@ contract Ghost is Ownable, ERC721A {
         //Require max 2 per tx
         require(quantity > 0 && quantity < 3, "Can only mint max 2 NFTs!");
 
-        if(directMintAllowed) {
+        if(!directMintAllowed) {
             require(
                 daSigner ==
                     keccak256(
