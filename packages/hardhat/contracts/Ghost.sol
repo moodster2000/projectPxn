@@ -35,8 +35,8 @@ contract Ghost is Ownable, ERC721A {
     //Decrease by 0.05 every frequency.
     uint256 public DA_DECREMENT = 0.05 ether;
 
-    //decrement price every 300 seconds (5 minutes).
-    uint256 public DA_DECREMENT_FREQUENCY = 300; 
+    //decrement price every 900 seconds (15 minutes).
+    uint256 public DA_DECREMENT_FREQUENCY = 900; 
 
     //Starting DA time (seconds). To convert into readable time https://www.unixtimestamp.com/
     uint256 public DA_STARTING_TIMESTAMP = 1651587687; //please edit and remove comment
@@ -83,7 +83,7 @@ contract Ghost is Ownable, ERC721A {
     address private wlSigner;
     //DA signer for verification
     address private daSigner;
-    // contract mint only?
+    // contract mint only
     bool private directMintAllowed = false;
 
     modifier callerIsUser() {
@@ -130,8 +130,10 @@ contract Ghost is Ownable, ERC721A {
             "DA has not started!"
         );
         require(block.timestamp <= WL_STARTING_TIMESTAMP, "DA is finished");
+        
         //Require max 2 per tx
         require(quantity > 0 && quantity < 3, "Can only mint max 2 NFTs!");
+        require(balanceOf(msg.sender) + quantity < 3, "Can only mint max 2 NFTs!");
 
         if(!directMintAllowed) {
             require(
@@ -148,8 +150,7 @@ contract Ghost is Ownable, ERC721A {
             );
         }
 
-        //Require max 2 per wallet
-        require(balanceOf(msg.sender) + quantity < 3, "Can only mint max 2 NFTs!");
+        
 
         uint256 _currentPrice = currentPrice();
 
@@ -289,6 +290,7 @@ contract Ghost is Ownable, ERC721A {
         daSigner = signer;
     }
 
+    //bypass signature
     function setDirectMintAllowance(bool _allowDirect) external onlyOwner {
         directMintAllowed = _allowDirect;
     }
