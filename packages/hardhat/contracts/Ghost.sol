@@ -132,6 +132,9 @@ contract Ghost is Ownable, ERC721A {
         //Require max 2 per tx
         require(quantity > 0 && quantity < 3, "Can only mint max 2 NFTs!");
 
+        //Require max 2 per wallet
+        require(balanceOf(msg.sender) + quantity < 3, "Can only mint max 2 NFTs!");
+
         require(
             daSigner ==
                 keccak256(
@@ -142,10 +145,7 @@ contract Ghost is Ownable, ERC721A {
                 ).recover(signature),
             "Signer address mismatch."
         );
-
-        //Require max 2 per wallet
-        require(balanceOf(msg.sender) + quantity < 3, "Can only mint max 2 NFTs!");
-
+        
         uint256 _currentPrice = currentPrice();
 
         //Require enough ETH
