@@ -223,7 +223,7 @@ contract Ghost is Ownable, ERC721A {
             msg.value >= quantity * WLprice,
             "Must send enough eth for WL Mint"
         );
-        require(totalSupply() + quantity < 10000, "exceeds supply");
+        require(totalSupply() + quantity <= 10000, "exceeds supply");
         _teamList[msg.sender] = _teamList[msg.sender] - quantity;
         _safeMint(msg.sender, quantity);
     }
