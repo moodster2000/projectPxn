@@ -7,13 +7,15 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "hardhat/console.sol";
 
-/*
-Ghost.sol
-
-Modified for PXN by: moodi
-Originally Written by: mousedev.eth
-Dutch Auction style inspired by: 0xinuarashi
-
+/**************************************************
+* Ghost.sol
+*
+* Modified for PXN by: moodi
+* Originally Written by: mousedev.eth
+* Dutch Auction style inspired by: 0xinuarashi
+*
+* Special thanks goes to: Mousedev, 0xBender, KAI
+*************************************************** 
 */
 
 contract Ghost is Ownable, ERC721A {
