@@ -25,7 +25,7 @@ contract Ghost is Ownable, ERC721A {
     //DA active variable
     bool public DA_ACTIVE = false; 
 
-    //Starting at 0.5 ether
+    //Starting at 2 ether
     uint256 public DA_STARTING_PRICE = 2 ether;
 
     //Ending at 0.1 ether
@@ -223,6 +223,7 @@ contract Ghost is Ownable, ERC721A {
             msg.value >= quantity * WLprice,
             "Must send enough eth for WL Mint"
         );
+        require(totalSupply() + quantity < 10000, "exceeds supply");
         _teamList[msg.sender] = _teamList[msg.sender] - quantity;
         _safeMint(msg.sender, quantity);
     }
