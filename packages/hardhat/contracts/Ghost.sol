@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ERC721A.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "hardhat/console.sol";
 
 /**************************************************
 * Ghost.sol
@@ -82,8 +81,10 @@ contract Ghost is Ownable, ERC721A {
 
     //WL signer for verification
     address private wlSigner;
-
+    //DA signer for verification
     address private daSigner;
+    // contract mint only?
+    bool private directMintAllowed = false;
 
     modifier callerIsUser() {
         require(tx.origin == msg.sender, "The caller is another contract");
@@ -117,7 +118,7 @@ contract Ghost is Ownable, ERC721A {
         return DA_STARTING_PRICE - totalDecrement;
     }
 
-    function mintDutchAuction(uint8 quantity, bytes calldata signature) public payable callerIsUser {
+    function mintDutchAuction(uint8 quantity, bytes calldata signature, bytes32 nonce) public payable callerIsUser {
         require(
             DA_ACTIVE == true,
             "DA isnt active"
@@ -132,20 +133,24 @@ contract Ghost is Ownable, ERC721A {
         //Require max 2 per tx
         require(quantity > 0 && quantity < 3, "Can only mint max 2 NFTs!");
 
+        if(!directMintAllowed) {
+            require(
+                daSigner ==
+                    keccak256(
+                        abi.encodePacked(
+                            "\x19Ethereum Signed Message:\n32",
+                            msg.sender,
+                            signature,
+                            nonce
+                        )
+                    ).recover(signature),
+                "Signer address mismatch."
+            );
+        }
+
         //Require max 2 per wallet
         require(balanceOf(msg.sender) + quantity < 3, "Can only mint max 2 NFTs!");
 
-        require(
-            daSigner ==
-                keccak256(
-                    abi.encodePacked(
-                        "\x19Ethereum Signed Message:\n32",
-                        bytes32(uint256(uint160(msg.sender)))
-                    )
-                ).recover(signature),
-            "Signer address mismatch."
-        );
-        
         uint256 _currentPrice = currentPrice();
 
         //Require enough ETH
@@ -282,6 +287,10 @@ contract Ghost is Ownable, ERC721A {
 
     function setDASigners(address signer) external onlyOwner {
         daSigner = signer;
+    }
+
+    function setDirectMintAllowance(bool _allowDirect) external onlyOwner {
+        directMintAllowed = _allowDirect;
     }
 
     function setDutchActionActive(bool daActive) public onlyOwner {
