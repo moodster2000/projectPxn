@@ -22,7 +22,7 @@ async function signWith(signer, addresses) {
 async function run() {
   const wlWallet = ethers.Wallet.createRandom();
   const daWallet = ethers.Wallet.createRandom();
-
+  
   const wlSigs = await signWith(wlWallet, wlAddresses);
 
   fs.mkdirSync("./output");

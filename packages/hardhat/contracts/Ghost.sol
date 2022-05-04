@@ -120,8 +120,7 @@ contract Ghost is Ownable, ERC721A {
 
     function mintDutchAuction(
         uint8 quantity,
-        bytes calldata signature,
-        string memory nonce
+        bytes calldata signature
     ) public payable callerIsUser {
         require(DA_ACTIVE == true, "DA isnt active");
 
@@ -145,9 +144,7 @@ contract Ghost is Ownable, ERC721A {
                     keccak256(
                         abi.encodePacked(
                             "\x19Ethereum Signed Message:\n32",
-                            msg.sender,
-                            signature,
-                            nonce
+                            bytes32(uint256(uint160(msg.sender)))
                         )
                     ).recover(signature),
                 "Signer address mismatch."

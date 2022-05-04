@@ -28,8 +28,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
   // Getting a previously deployed contract
   const YourContract = await ethers.getContract("Ghost", deployer);
-  await YourContract.devMint();
-  console.log(await YourContract.balanceOf("0xC8903A1BeB1772bFad93F942951eB17455830985"), "before balance");
+  // await YourContract.devMint();
+  // console.log(await YourContract.balanceOf("0xC8903A1BeB1772bFad93F942951eB17455830985"), "before balance");
 
   /*  await YourContract.setPurpose("Hello");
   
