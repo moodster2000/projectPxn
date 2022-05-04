@@ -2,10 +2,9 @@ const fs = require("fs");
 const ethers = require("ethers");
 
 var wlAddresses = [
-  "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-  "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-  "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-  "0x90F79bf6EB2c4f870365E785982E1f101E93b906"
+  "0x4A0C2B91e2DC344C0c77184F1A0B9cc62a836187",
+  "0x2a26637C0535D2BCF2C4Fa40B5080416ED8aC027",
+  "0x19b260a039eDa8b896F4c7463445Fb94b4C86a85"
 ];
 
 async function signWith(signer, addresses) {

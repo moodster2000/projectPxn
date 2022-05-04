@@ -6,40 +6,29 @@ import "./ERC721A.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-/**************************************************
- * Ghost.sol
- *
- * Modified for PXN by: moodi
- * Originally Written by: mousedev.eth
- * Dutch Auction style inspired by: 0xinuarashi
- *
- * Special thanks goes to: Mousedev, 0xBender, KAI
- ***************************************************
- */
-
 contract Ghost is Ownable, ERC721A {
     using ECDSA for bytes32;
 
     //Base Extension
-    string public baseExtension = ".json";
+    string public constant baseExtension = ".json";
 
     //DA active variable
     bool public DA_ACTIVE = false;
 
     //Starting at 2 ether
-    uint256 public DA_STARTING_PRICE = 2 ether;
+    uint256 public constant DA_STARTING_PRICE = 2 ether;
 
     //Ending at 0.1 ether
-    uint256 public DA_ENDING_PRICE = 0.1 ether;
+    uint256 public constant DA_ENDING_PRICE = 0.1 ether;
 
     //Decrease by 0.05 every frequency.
-    uint256 public DA_DECREMENT = 0.05 ether;
+    uint256 public constant DA_DECREMENT = 0.05 ether;
 
     //decrement price every 900 seconds (15 minutes).
-    uint256 public DA_DECREMENT_FREQUENCY = 900;
+    uint256 public constant DA_DECREMENT_FREQUENCY = 900;
 
     //Starting DA time (seconds). To convert into readable time https://www.unixtimestamp.com/
-    uint256 public DA_STARTING_TIMESTAMP = 1651408229; //please edit and remove comment
+    uint256 public DA_STARTING_TIMESTAMP = 1651719600; 
 
     //The final auction price.
     uint256 public DA_FINAL_PRICE;
@@ -48,7 +37,7 @@ contract Ghost is Ownable, ERC721A {
     uint256 public WLprice = 0.35 ether;
 
     //The quantity for DA.
-    uint256 public DA_QUANTITY = 4000; //change this before commit
+    uint256 public constant DA_QUANTITY = 4000; 
 
     //The quantity for WL.
     uint256 public WL_QUANTITY = 6000;
@@ -56,8 +45,8 @@ contract Ghost is Ownable, ERC721A {
     //How many publicWL have been minted
     uint16 public PUBLIC_WL_MINTED;
 
-    address public FOUNDER_ADD = 0xDfcF9a8Ec246Dd94C110b4Ccf7545eC6f913dA37; //please edit and remove comment
-    address public DEV_FUND = 0xC8903A1BeB1772bFad93F942951eB17455830985; //please edit and remove comment
+    address public constant FOUNDER_ADD = 0xDfcF9a8Ec246Dd94C110b4Ccf7545eC6f913dA37;
+    address public constant DEV_FUND = 0xC8903A1BeB1772bFad93F942951eB17455830985;
 
     //+86400 so it takes place 24 hours after Dutch Auction
     uint256 public WL_STARTING_TIMESTAMP = DA_STARTING_TIMESTAMP + 86400;
@@ -91,7 +80,7 @@ contract Ghost is Ownable, ERC721A {
         _;
     }
 
-    constructor() ERC721A("projectPXN", "GHOST") {}
+    constructor() ERC721A("projectPXN", "GHOST") {} 
 
     function currentPrice() public view returns (uint256) {
         require(
