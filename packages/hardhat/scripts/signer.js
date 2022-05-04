@@ -21,6 +21,7 @@ async function signWith(signer, addresses) {
 
 async function run() {
   const wlWallet = ethers.Wallet.createRandom();
+  const daWallet = ethers.Wallet.createRandom();
 
   const wlSigs = await signWith(wlWallet, wlAddresses);
 
@@ -31,6 +32,8 @@ async function run() {
     JSON.stringify(
       {
         wlSigner: wlWallet.address,
+        daSigner: daWallet.address,
+        daPrivateKey: daWallet.privateKey,
       },
       null,
       2

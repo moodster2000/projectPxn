@@ -7,15 +7,15 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /**************************************************
-* Ghost.sol
-*
-* Modified for PXN by: moodi
-* Originally Written by: mousedev.eth
-* Dutch Auction style inspired by: 0xinuarashi
-*
-* Special thanks goes to: Mousedev, 0xBender, KAI
-*************************************************** 
-*/
+ * Ghost.sol
+ *
+ * Modified for PXN by: moodi
+ * Originally Written by: mousedev.eth
+ * Dutch Auction style inspired by: 0xinuarashi
+ *
+ * Special thanks goes to: Mousedev, 0xBender, KAI
+ ***************************************************
+ */
 
 contract Ghost is Ownable, ERC721A {
     using ECDSA for bytes32;
@@ -24,10 +24,10 @@ contract Ghost is Ownable, ERC721A {
     string public baseExtension = ".json";
 
     //DA active variable
-    bool public DA_ACTIVE = false; 
+    bool public DA_ACTIVE = false;
 
     //Starting at 2 ether
-    uint256 public DA_STARTING_PRICE = 2 ether; 
+    uint256 public DA_STARTING_PRICE = 2 ether;
 
     //Ending at 0.1 ether
     uint256 public DA_ENDING_PRICE = 0.1 ether;
@@ -36,10 +36,10 @@ contract Ghost is Ownable, ERC721A {
     uint256 public DA_DECREMENT = 0.05 ether;
 
     //decrement price every 900 seconds (15 minutes).
-    uint256 public DA_DECREMENT_FREQUENCY = 900; 
+    uint256 public DA_DECREMENT_FREQUENCY = 900;
 
     //Starting DA time (seconds). To convert into readable time https://www.unixtimestamp.com/
-    uint256 public DA_STARTING_TIMESTAMP = 1651587687; //please edit and remove comment
+    uint256 public DA_STARTING_TIMESTAMP = 1651408229; //please edit and remove comment
 
     //The final auction price.
     uint256 public DA_FINAL_PRICE;
@@ -48,7 +48,7 @@ contract Ghost is Ownable, ERC721A {
     uint256 public WLprice = 0.35 ether;
 
     //The quantity for DA.
-    uint256 public DA_QUANTITY = 4000; 
+    uint256 public DA_QUANTITY = 4000; //change this before commit
 
     //The quantity for WL.
     uint256 public WL_QUANTITY = 6000;
@@ -60,7 +60,7 @@ contract Ghost is Ownable, ERC721A {
     address public DEV_FUND = 0xC8903A1BeB1772bFad93F942951eB17455830985; //please edit and remove comment
 
     //+86400 so it takes place 24 hours after Dutch Auction
-    uint256 public WL_STARTING_TIMESTAMP = DA_STARTING_TIMESTAMP + 86400; 
+    uint256 public WL_STARTING_TIMESTAMP = DA_STARTING_TIMESTAMP + 86400;
 
     //Struct for storing batch price data.
     struct TokenBatchPriceData {
@@ -91,7 +91,7 @@ contract Ghost is Ownable, ERC721A {
         _;
     }
 
-    constructor() ERC721A("projectPXN", "GHOST") {} 
+    constructor() ERC721A("projectPXN", "GHOST") {}
 
     function currentPrice() public view returns (uint256) {
         require(
@@ -118,24 +118,28 @@ contract Ghost is Ownable, ERC721A {
         return DA_STARTING_PRICE - totalDecrement;
     }
 
-    function mintDutchAuction(uint8 quantity, bytes calldata signature, bytes32 nonce) public payable callerIsUser {
-        require(
-            DA_ACTIVE == true,
-            "DA isnt active"
-        );
-        
+    function mintDutchAuction(
+        uint8 quantity,
+        bytes calldata signature,
+        string memory nonce
+    ) public payable callerIsUser {
+        require(DA_ACTIVE == true, "DA isnt active");
+
         //Require DA started
         require(
             block.timestamp >= DA_STARTING_TIMESTAMP,
             "DA has not started!"
         );
         require(block.timestamp <= WL_STARTING_TIMESTAMP, "DA is finished");
-        
+
         //Require max 2 per tx
         require(quantity > 0 && quantity < 3, "Can only mint max 2 NFTs!");
-        require(balanceOf(msg.sender) + quantity < 3, "Can only mint max 2 NFTs!");
+        require(
+            _numberMinted(msg.sender) + quantity < 3,
+            "Can only mint max 2 NFTs!"
+        );
 
-        if(!directMintAllowed) {
+        if (!directMintAllowed) {
             require(
                 daSigner ==
                     keccak256(
@@ -149,8 +153,6 @@ contract Ghost is Ownable, ERC721A {
                 "Signer address mismatch."
             );
         }
-
-        
 
         uint256 _currentPrice = currentPrice();
 
@@ -198,10 +200,7 @@ contract Ghost is Ownable, ERC721A {
             "WL has finished!"
         );
         //Require max supply just in case.
-        require(
-            PUBLIC_WL_MINTED + 1 <= WL_QUANTITY,
-            "Max supply of 6000!"
-        );
+        require(PUBLIC_WL_MINTED + 1 <= WL_QUANTITY, "Max supply of 6000!");
 
         require(
             wlSigner ==
@@ -229,16 +228,17 @@ contract Ghost is Ownable, ERC721A {
             block.timestamp >= WL_STARTING_TIMESTAMP + 86400,
             "WL hasnt finished!"
         );
-        uint256 leftOver = 10000 - totalSupply();
+        uint256 leftOver = 10000 - totalSupply(); 
+        while (leftOver > 10) {
+            _safeMint(DEV_FUND, 10);
+            leftOver -= 10;
+        }
         _safeMint(DEV_FUND, leftOver);
     }
 
     //team mint
     function teamMint(uint8 quantity) public payable {
-        require(
-            block.timestamp >= WL_STARTING_TIMESTAMP,
-            "WL has finished!"
-        );
+        require(block.timestamp >= WL_STARTING_TIMESTAMP, "WL hasnt started!");
         require(_teamList[msg.sender] >= quantity, "already claimed");
         require(
             msg.value >= quantity * WLprice,
@@ -259,18 +259,14 @@ contract Ghost is Ownable, ERC721A {
         }
     }
 
-    function readTeamMint(address user)
-        public
-        view
-        returns (uint256)
-    {
+    function readTeamMint(address user) public view returns (uint256) {
         return _teamList[user];
     }
 
     function userToTokenBatch(address user)
         public
         view
-        returns (TokenBatchPriceData [] memory)
+        returns (TokenBatchPriceData[] memory)
     {
         return userToTokenBatchPriceData[user];
     }
@@ -324,7 +320,13 @@ contract Ghost is Ownable, ERC721A {
     {
         if (REVEALED) {
             return
-                string(abi.encodePacked(BASE_URI, Strings.toString(_tokenId), baseExtension));
+                string(
+                    abi.encodePacked(
+                        BASE_URI,
+                        Strings.toString(_tokenId),
+                        baseExtension
+                    )
+                );
         } else {
             return BASE_URI;
         }

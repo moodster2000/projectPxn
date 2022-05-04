@@ -28,6 +28,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
   // Getting a previously deployed contract
   const YourContract = await ethers.getContract("Ghost", deployer);
+  await YourContract.devMint();
+  console.log(await YourContract.balanceOf("0xC8903A1BeB1772bFad93F942951eB17455830985"), "before balance");
 
   /*  await YourContract.setPurpose("Hello");
   
@@ -137,16 +139,16 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
 
   // You can also Verify your contracts with Etherscan here...
   // You don't want to verify on localhost
-  try {
-    if (chainId !== localChainId) {
-      await run("verify:verify", {
-        address: YourContract.address,
-        contract: "contracts/Ghost.sol:Ghost",
-        constructorArguments: [],
-      });
-    }
-  } catch (error) {
-    console.error(error);
-  }
+  // try {
+  //   if (chainId !== localChainId) {
+  //     await run("verify:verify", {
+  //       address: YourContract.address,
+  //       contract: "contracts/Ghost.sol:Ghost",
+  //       constructorArguments: [],
+  //     });
+  //   }
+  // } catch (error) {
+  //   console.error(error);
+  // }
 };
 module.exports.tags = ["YourContract"];
