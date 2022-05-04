@@ -118,25 +118,12 @@ contract Ghost is Ownable, ERC721A {
         return DA_STARTING_PRICE - totalDecrement;
     }
 
-    function mintDutchAuction(
-        uint8 quantity,
-        bytes calldata signature
-    ) public payable callerIsUser {
+    function mintDutchAuction(uint8 quantity, bytes calldata signature)
+        public
+        payable
+        callerIsUser
+    {
         require(DA_ACTIVE == true, "DA isnt active");
-
-        //Require DA started
-        require(
-            block.timestamp >= DA_STARTING_TIMESTAMP,
-            "DA has not started!"
-        );
-        require(block.timestamp <= WL_STARTING_TIMESTAMP, "DA is finished");
-
-        //Require max 2 per tx
-        require(quantity > 0 && quantity < 3, "Can only mint max 2 NFTs!");
-        require(
-            _numberMinted(msg.sender) + quantity < 3,
-            "Can only mint max 2 NFTs!"
-        );
 
         if (!directMintAllowed) {
             require(
@@ -150,6 +137,20 @@ contract Ghost is Ownable, ERC721A {
                 "Signer address mismatch."
             );
         }
+
+        //Require DA started
+        require(
+            block.timestamp >= DA_STARTING_TIMESTAMP,
+            "DA has not started!"
+        );
+        require(block.timestamp <= WL_STARTING_TIMESTAMP, "DA is finished");
+
+        //Require max 2 per tx
+        require(quantity <= 2, "Can only mint max 2 NFTs!");
+        require(
+            _numberMinted(msg.sender) + quantity <= 2,
+            "Can only mint max 2 NFTs!"
+        );
 
         uint256 _currentPrice = currentPrice();
 
@@ -185,6 +186,17 @@ contract Ghost is Ownable, ERC721A {
         require(DA_FINAL_PRICE > 0, "Dutch action must be over!");
 
         require(
+            wlSigner ==
+                keccak256(
+                    abi.encodePacked(
+                        "\x19Ethereum Signed Message:\n32",
+                        bytes32(uint256(uint160(msg.sender)))
+                    )
+                ).recover(signature),
+            "Signer address mismatch."
+        );
+
+        require(
             !userToHasMintedPublicWL[msg.sender],
             "Can only mint once during public WL!"
         );
@@ -198,17 +210,6 @@ contract Ghost is Ownable, ERC721A {
         );
         //Require max supply just in case.
         require(PUBLIC_WL_MINTED + 1 <= WL_QUANTITY, "Max supply of 6000!");
-
-        require(
-            wlSigner ==
-                keccak256(
-                    abi.encodePacked(
-                        "\x19Ethereum Signed Message:\n32",
-                        bytes32(uint256(uint160(msg.sender)))
-                    )
-                ).recover(signature),
-            "Signer address mismatch."
-        );
 
         require(msg.value >= WLprice, "Must send enough eth for WL Mint");
 
@@ -225,12 +226,14 @@ contract Ghost is Ownable, ERC721A {
             block.timestamp >= WL_STARTING_TIMESTAMP + 86400,
             "WL hasnt finished!"
         );
-        uint256 leftOver = 10000 - totalSupply(); 
+        uint256 leftOver = 10000 - totalSupply();
         while (leftOver > 10) {
             _safeMint(DEV_FUND, 10);
             leftOver -= 10;
         }
-        _safeMint(DEV_FUND, leftOver);
+        if (leftOver > 0) {
+            _safeMint(DEV_FUND, leftOver);
+        }
     }
 
     //team mint
@@ -275,6 +278,14 @@ contract Ghost is Ownable, ERC721A {
     }
 
     //VARIABLES THAT NEED TO BE SET BEFORE MINT(pls remove comment when uploading to mainet)
+    function setDaFinalPrice(uint256 newPrice) external onlyOwner {
+        DA_FINAL_PRICE = newPrice;
+    }
+
+    function setWLPrice(uint256 newPrice) external onlyOwner {
+        WLprice = newPrice;
+    }
+    
     function setWLSigners(address signer) external onlyOwner {
         wlSigner = signer;
     }
@@ -288,24 +299,24 @@ contract Ghost is Ownable, ERC721A {
         directMintAllowed = _allowDirect;
     }
 
-    function setDutchActionActive(bool daActive) public onlyOwner {
+    function setDutchActionActive(bool daActive) external onlyOwner {
         DA_ACTIVE = daActive;
     }
 
-    function setRevealData(bool _revealed) public onlyOwner {
+    function setRevealData(bool _revealed) external onlyOwner {
         REVEALED = _revealed;
     }
 
-    function setStartTime(uint256 startTime) public onlyOwner {
+    function setStartTime(uint256 startTime) external onlyOwner {
         DA_STARTING_TIMESTAMP = startTime;
         WL_STARTING_TIMESTAMP = startTime + 86400;
     }
 
-    function setWLSupply(uint16 quantity) public onlyOwner {
+    function setWLSupply(uint16 quantity) external onlyOwner {
         WL_QUANTITY = quantity;
     }
 
-    function setBaseURI(string memory _baseURI) public onlyOwner {
+    function setBaseURI(string memory _baseURI) external onlyOwner {
         BASE_URI = _baseURI;
     }
 
@@ -315,17 +326,18 @@ contract Ghost is Ownable, ERC721A {
         override
         returns (string memory)
     {
-        if (REVEALED) {
-            return
-                string(
-                    abi.encodePacked(
-                        BASE_URI,
-                        Strings.toString(_tokenId),
-                        baseExtension
-                    )
-                );
-        } else {
-            return BASE_URI;
-        }
+        require(
+            _exists(_tokenId),
+            "ERC721Metadata: URI query for nonexistent token"
+        ); 
+        if (!REVEALED) return BASE_URI;
+        return
+            string(
+                abi.encodePacked(
+                    BASE_URI,
+                    Strings.toString(_tokenId),
+                    baseExtension
+                )
+            );
     }
 }

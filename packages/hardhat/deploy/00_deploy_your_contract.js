@@ -53,7 +53,14 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   // await YourContract.setBaseURI(
   //   "https://storage.googleapis.com/revealdata/actual/"
   // );
-  // console.log(await YourContract.tokenURI(1), "yum");
+  // console.log(await YourContract.tokenURI(1), "yum revealed");
+
+  //change Price
+  await YourContract.setDaFinalPrice(ethers.utils.parseEther((0.8).toString()));
+  console.log(ethers.utils.formatEther(await YourContract.DA_FINAL_PRICE()), "final price");
+  await YourContract.mintWL("0xedfb4fd95ca947c235160d9e039367ce1e113271717b48c0c2dc32d23fcff2e3391b6e5d0347cd1390eab3f160623492d9b4a71bc2670984570f0a7bbba69ebd1b",{
+      value: ethers.utils.parseEther((0.8).toString()),
+    });
 
   // const accounts = await hre.ethers.getSigners();
   // await YourContract.setDutchActionActive(true);
