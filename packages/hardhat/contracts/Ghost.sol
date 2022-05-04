@@ -6,6 +6,17 @@ import "./ERC721A.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
+/**************************************************
+ * Ghost.sol
+ *
+ * Modified for PXN by: moodi
+ * Originally Written by: mousedev.eth
+ * Dutch Auction style inspired by: 0xinuarashi
+ *
+ * Special thanks goes to: Mousedev, KAI, woof
+ ***************************************************
+ */
+
 contract Ghost is Ownable, ERC721A {
     using ECDSA for bytes32;
 
@@ -45,8 +56,8 @@ contract Ghost is Ownable, ERC721A {
     //How many publicWL have been minted
     uint16 public PUBLIC_WL_MINTED;
 
-    address public constant FOUNDER_ADD = 0xDfcF9a8Ec246Dd94C110b4Ccf7545eC6f913dA37;
-    address public constant DEV_FUND = 0xC8903A1BeB1772bFad93F942951eB17455830985;
+    address public constant FOUNDER_ADD = 0xDfcF9a8Ec246Dd94C110b4Ccf7545eC6f913dA37; //please change address
+    address public constant DEV_FUND = 0xC8903A1BeB1772bFad93F942951eB17455830985; //please change address
 
     //+86400 so it takes place 24 hours after Dutch Auction
     uint256 public WL_STARTING_TIMESTAMP = DA_STARTING_TIMESTAMP + 86400;
@@ -113,7 +124,6 @@ contract Ghost is Ownable, ERC721A {
         callerIsUser
     {
         require(DA_ACTIVE == true, "DA isnt active");
-
         if (!directMintAllowed) {
             require(
                 daSigner ==
@@ -126,14 +136,17 @@ contract Ghost is Ownable, ERC721A {
                 "Signer address mismatch."
             );
         }
-
+        //Max supply
+        require(
+            totalSupply() + quantity <= DA_QUANTITY,
+            "Max supply for DA reached!"
+        );
         //Require DA started
         require(
             block.timestamp >= DA_STARTING_TIMESTAMP,
             "DA has not started!"
         );
-        require(block.timestamp <= WL_STARTING_TIMESTAMP, "DA is finished");
-
+        require(block.timestamp <= WL_STARTING_TIMESTAMP, "DA is finished.");
         //Require max 2 per tx
         require(quantity <= 2, "Can only mint max 2 NFTs!");
         require(
@@ -142,17 +155,10 @@ contract Ghost is Ownable, ERC721A {
         );
 
         uint256 _currentPrice = currentPrice();
-
         //Require enough ETH
         require(
             msg.value >= quantity * _currentPrice,
             "Did not send enough eth."
-        );
-
-        //Max supply
-        require(
-            totalSupply() + quantity <= DA_QUANTITY,
-            "Max supply for DA reached!"
         );
 
         //This calculates the final price
@@ -173,7 +179,6 @@ contract Ghost is Ownable, ERC721A {
 
     function mintWL(bytes calldata signature) public payable callerIsUser {
         require(DA_FINAL_PRICE > 0, "Dutch action must be over!");
-
         require(
             wlSigner ==
                 keccak256(
@@ -184,22 +189,19 @@ contract Ghost is Ownable, ERC721A {
                 ).recover(signature),
             "Signer address mismatch."
         );
-
+        require(PUBLIC_WL_MINTED + 1 <= WL_QUANTITY, "Max supply of 6000 for WL!");
         require(
             !userToHasMintedPublicWL[msg.sender],
-            "Can only mint once during public WL!"
+            "Can only mint once during WL!"
         );
         require(
             block.timestamp >= WL_STARTING_TIMESTAMP,
-            "WL has not started yet!"
+            "WL minting has not started yet!"
         );
         require(
             block.timestamp <= WL_STARTING_TIMESTAMP + 86400,
-            "WL has finished!"
+            "WL minting has finished!"
         );
-        //Require max supply just in case.
-        require(PUBLIC_WL_MINTED + 1 <= WL_QUANTITY, "Max supply of 6000!");
-
         require(msg.value >= WLprice, "Must send enough eth for WL Mint");
 
         userToHasMintedPublicWL[msg.sender] = true;
@@ -227,13 +229,13 @@ contract Ghost is Ownable, ERC721A {
 
     //team mint
     function teamMint(uint8 quantity) public payable {
-        require(block.timestamp >= WL_STARTING_TIMESTAMP, "WL hasnt started!");
-        require(_teamList[msg.sender] >= quantity, "already claimed");
+        require(block.timestamp >= WL_STARTING_TIMESTAMP, "Team Mint hasnt started!");
+        require(_teamList[msg.sender] >= quantity, "Already claimed.");
         require(
             msg.value >= quantity * WLprice,
-            "Must send enough eth for WL Mint"
+            "Must send enough eth for Team Mint"
         );
-        require(totalSupply() + quantity <= 10000, "exceeds supply");
+        require(totalSupply() + quantity <= 10000, "Exceeds supply.");
         _teamList[msg.sender] = _teamList[msg.sender] - quantity;
         _safeMint(msg.sender, quantity);
     }
